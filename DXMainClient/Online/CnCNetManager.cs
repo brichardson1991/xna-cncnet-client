@@ -379,13 +379,69 @@ namespace DTAClient.Online
                     foreColor = cDefaultChatColor;
             }
 
-            if (message.Length > 1 && message[message.Length - 1] == '\u001f')
-                message = message.Remove(message.Length - 1);
+            // Strip IRC formatting codes: bold (\x02), italic (\x1d), underline (\x1f), reverse (\x16), etc.
+            message = StripIRCFormatting(message);
 
             ChannelUser user = channel.Users.Find(senderName);
             bool senderIsAdmin = user != null && user.IsAdmin;
 
             channel.AddMessage(new ChatMessage(senderName, ident, senderIsAdmin, foreColor, DateTime.Now, message.Replace('\r', ' ')));
+        }
+
+        private string StripIRCFormatting(string text)
+        {
+            // Remove IRC control codes:
+            // \x02 - Bold
+            // \x1d - Italic  
+            // \x1f - Underline
+            // \x16 - Reverse
+            // \x0f - Reset/Normal
+            // \x03 - Color (with optional color numbers)
+            var result = new System.Text.StringBuilder();
+
+            for (int i = 0; i < text.Length; i++)
+            {
+                char c = text[i];
+
+                // Skip formatting codes
+                if (c == '\x02' || c == '\x1d' || c == '\x1f' || c == '\x16' || c == '\x0f')
+                {
+                    continue;
+                }
+
+                // Handle color codes (\x03)
+                if (c == '\x03')
+                {
+                    i++; // Skip the \x03 character
+
+                    // Skip up to 2 digits for foreground color
+                    int digits = 0;
+                    while (i < text.Length && char.IsDigit(text[i]) && digits < 2)
+                    {
+                        i++;
+                        digits++;
+                    }
+
+                    // Skip comma and up to 2 more digits for background color
+                    if (i < text.Length && text[i] == ',')
+                    {
+                        i++; // Skip comma
+                        digits = 0;
+                        while (i < text.Length && char.IsDigit(text[i]) && digits < 2)
+                        {
+                            i++;
+                            digits++;
+                        }
+                    }
+
+                    i--; // Adjust for the i++ in the for loop
+                    continue;
+                }
+
+                result.Append(c);
+            }
+
+            return result.ToString();
         }
 
         public void OnCTCPParsed(string channelName, string userName, string message)
