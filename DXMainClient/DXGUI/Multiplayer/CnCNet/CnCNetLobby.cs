@@ -527,8 +527,9 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
                 if (chatChannel == null)
                 {
+                    string channelPassword = game.ChatChannel == "#cncnet-hottwire" ? null : "ra1-derp";
                     chatChannel = connectionManager.CreateChannel(game.UIName, game.ChatChannel,
-                        true, true, "ra1-derp");
+                        true, true, channelPassword);
                     connectionManager.AddChannel(chatChannel);
                 }
 
@@ -1393,8 +1394,7 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
                 currentChatChannel.MessageAdded -= CurrentChatChannel_MessageAdded;
                 currentChatChannel.UserGameIndexUpdated -= CurrentChatChannel_UserGameIndexUpdated;
 
-                if (currentChatChannel.ChannelName != "#cncnet" &&
-                    currentChatChannel.ChannelName != gameCollection.GetGameChatChannelNameFromIdentifier(localGameID))
+                if (currentChatChannel.ChannelName != gameCollection.GetGameChatChannelNameFromIdentifier(localGameID))
                 {
                     // Remove the assigned channels from the users so we don't have ghost users on the PM user list
                     currentChatChannel.Users.DoForAllUsers(user =>
@@ -1428,10 +1428,15 @@ namespace DTAClient.DXGUI.Multiplayer.CnCNet
 
             RefreshPlayerList(this, EventArgs.Empty);
 
-            if (currentChatChannel.ChannelName != "#cncnet" &&
-                currentChatChannel.ChannelName != gameCollection.GetGameChatChannelNameFromIdentifier(localGameID))
+            string localGameChatChannel = gameCollection.GetGameChatChannelNameFromIdentifier(localGameID);
+            if (currentChatChannel.ChannelName != localGameChatChannel)
             {
+                Logger.Log($"Joining channel: {currentChatChannel.ChannelName} (localGameChatChannel: {localGameChatChannel})");
                 currentChatChannel.Join();
+            }
+            else
+            {
+                Logger.Log($"Skipping join for local game chat channel: {currentChatChannel.ChannelName}");
             }
         }
 

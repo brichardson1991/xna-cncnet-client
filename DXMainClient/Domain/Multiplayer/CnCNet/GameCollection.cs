@@ -206,6 +206,15 @@ namespace DTAClient.Domain.Multiplayer.CnCNet
                     UIName = "General CnCNet Chat".L10N("Client:ClientCore:GeneralCnCNetChat"),
                     AlwaysEnabled = true,
                     Texture = AssetLoader.TextureFromImage(cncnetIcon)
+                },
+
+                new()
+                {
+                    ChatChannel = "#cncnet-hottwire",
+                    InternalName = "hottwire",
+                    UIName = "Hottwire Chat".L10N("Client:ClientCore:HottwireChat"),
+                    AlwaysEnabled = false,
+                    Texture = AssetLoader.TextureFromImage(cncnetIcon)
                 }
             };
 
